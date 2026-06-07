@@ -128,7 +128,7 @@ async function loadInstruments() {
             </a-button>
             <a-button
               type="primary"
-              :disabled="item.status !== 'available'"
+              :disabled="item.status === 'maintenance'"
               @click="router.push(`/instruments/${item.instrument_id}/reserve`)"
             >
               立即预约

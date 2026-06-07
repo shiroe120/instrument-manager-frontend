@@ -65,10 +65,10 @@ onMounted(async () => {
           <a-button
             type="primary"
             size="large"
-            :disabled="instrument.status !== 'available'"
+            :disabled="instrument.status === 'maintenance'"
             @click="router.push(`/instruments/${instrument.instrument_id}/reserve`)"
           >
-            {{ instrument.status === 'available' ? '预约此仪器' : '当前不可预约' }}
+            {{ instrument.status === 'maintenance' ? '维修中，暂不可预约' : '预约此仪器' }}
           </a-button>
         </div>
       </a-card>
