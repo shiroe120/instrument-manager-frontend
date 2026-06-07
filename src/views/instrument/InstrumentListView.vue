@@ -10,6 +10,7 @@ const store = useInstrumentStore()
 const keyword = ref('')
 const selectedCategory = ref<number | undefined>(undefined)
 const selectedStatus = ref<string | undefined>(undefined)
+const categories = ref<Category[]>([])
 
 const statusOptions = [
   { label: '全部', value: '' },
@@ -18,11 +19,9 @@ const statusOptions = [
   { label: '🟠 维修中', value: 'maintenance' },
 ]
 
-let categories: Category[] = []
-
 onMounted(async () => {
   try {
-    categories = (await store.fetchCategories()) ?? []
+    categories.value = (await store.fetchCategories()) ?? []
   } catch { /* ignore */ }
   await loadInstruments()
 })
@@ -54,7 +53,7 @@ async function loadInstruments() {
         <a-col :xs="24" :sm="8" :md="6">
           <a-select
             v-model:value="selectedCategory"
-            :options="categories.map(c => ({ value: c.category_id, label: c.name }))"
+            :options="categories.map((c: Category) => ({ value: c.category_id, label: c.name }))"
             placeholder="选择分类"
             allow-clear
             style="width: 100%"

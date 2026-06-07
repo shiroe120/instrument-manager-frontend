@@ -20,6 +20,82 @@ const form = ref<InstrumentCreateRequest & { status?: string }>({
 })
 const submitLoading = ref(false)
 
+// 分类管理弹窗
+const catModalVisible = ref(false)
+const catNewName = ref('')
+const catEditId = ref<number | null>(null)
+const catEditName = ref('')
+
+function openCategoryModal() {
+  catModalVisible.value = true
+  catNewName.value = ''
+  catEditId.value = null
+  catEditName.value = ''
+}
+
+async function handleAddCategory() {
+  if (!catNewName.value.trim()) {
+    message.warning('请输入分类名称')
+    return
+  }
+  try {
+    await instrumentApi.createCategory(catNewName.value.trim())
+    message.success('添加成功')
+    catNewName.value = ''
+    const res = await instrumentApi.getCategories()
+    categories.value = res.data
+  } catch (err: any) {
+    message.error(err?.response?.data?.detail || '添加失败')
+  }
+}
+
+async function handleEditCategory(cat: Category) {
+  if (!catEditName.value.trim()) {
+    message.warning('请输入分类名称')
+    return
+  }
+  try {
+    await instrumentApi.updateCategory(cat.category_id, catEditName.value.trim())
+    message.success('更新成功')
+    catEditId.value = null
+    catEditName.value = ''
+    const res = await instrumentApi.getCategories()
+    categories.value = res.data
+  } catch (err: any) {
+    message.error(err?.response?.data?.detail || '更新失败')
+  }
+}
+
+function startEdit(cat: Category) {
+  catEditId.value = cat.category_id
+  catEditName.value = cat.name
+}
+
+function cancelEdit() {
+  catEditId.value = null
+  catEditName.value = ''
+}
+
+async function handleDeleteCategory(cat: Category) {
+  Modal.confirm({
+    title: '确认删除',
+    content: `确定要删除分类「${cat.name}」吗？（该分类下有仪器则无法删除）`,
+    okText: '确认删除',
+    okType: 'danger',
+    cancelText: '取消',
+    onOk: async () => {
+      try {
+        await instrumentApi.deleteCategory(cat.category_id)
+        message.success('已删除')
+        const res = await instrumentApi.getCategories()
+        categories.value = res.data
+      } catch (err: any) {
+        message.error(err?.response?.data?.detail || '删除失败')
+      }
+    },
+  })
+}
+
 const columns = [
   { title: 'ID', dataIndex: 'instrument_id', sorter: (a: Instrument, b: Instrument) => a.instrument_id - b.instrument_id },
   { title: '名称', dataIndex: 'name' },
@@ -133,9 +209,14 @@ function handleDelete(record: Instrument) {
       <template #title>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <span style="font-size: 18px; font-weight: 600;">仪器管理</span>
-          <a-button type="primary" @click="openCreate">
-            + 新增仪器
-          </a-button>
+          <div>
+            <a-button style="margin-right: 8px;" @click="openCategoryModal">
+              管理分类
+            </a-button>
+            <a-button type="primary" @click="openCreate">
+              + 新增仪器
+            </a-button>
+          </div>
         </div>
       </template>
 
@@ -209,6 +290,49 @@ function handleDelete(record: Instrument) {
           />
         </a-form-item>
       </a-form>
+    </a-modal>
+
+    <!-- 分类管理弹窗 -->
+    <a-modal
+      v-model:visible="catModalVisible"
+      title="分类管理"
+      :footer="null"
+      @cancel="cancelEdit"
+    >
+      <a-list :dataSource="categories" size="small">
+        <template #renderItem="{ item }: { item: Category }">
+          <a-list-item>
+            <template v-if="catEditId === item.category_id">
+              <a-input
+                v-model:value="catEditName"
+                style="width: 200px"
+                @press-enter="handleEditCategory(item)"
+              />
+              <template #actions>
+                <a-button type="link" @click="handleEditCategory(item)">保存</a-button>
+                <a-button type="link" @click="cancelEdit">取消</a-button>
+              </template>
+            </template>
+            <template v-else>
+              <a-list-item-meta :title="item.name" />
+              <template #actions>
+                <a-button type="link" @click="startEdit(item)">编辑</a-button>
+                <a-button type="link" danger @click="handleDeleteCategory(item)">删除</a-button>
+              </template>
+            </template>
+          </a-list-item>
+        </template>
+        <template #header>
+          <div style="display: flex; gap: 8px;">
+            <a-input
+              v-model:value="catNewName"
+              placeholder="输入新分类名称"
+              @press-enter="handleAddCategory"
+            />
+            <a-button type="primary" @click="handleAddCategory">添加</a-button>
+          </div>
+        </template>
+      </a-list>
     </a-modal>
   </div>
 </template>
