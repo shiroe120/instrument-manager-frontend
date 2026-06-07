@@ -13,7 +13,6 @@ const editingId = ref<number | null>(null)
 const form = ref<InstrumentCreateRequest & { status?: string }>({
   name: '',
   model: '',
-  asset_tag: '',
   category_id: undefined as unknown as number,
   location: '',
   description: '',
@@ -137,7 +136,6 @@ function openCreate() {
   form.value = {
     name: '',
     model: '',
-    asset_tag: '',
     category_id: undefined as unknown as number,
     location: '',
     description: '',
@@ -151,7 +149,6 @@ function openEdit(record: Instrument) {
   form.value = {
     name: record.name,
     model: record.model || '',
-    asset_tag: record.asset_tag || '',
     category_id: record.category_id,
     location: record.location || '',
     description: record.description || '',
@@ -261,9 +258,6 @@ function handleDelete(record: Instrument) {
         <a-form-item label="型号">
           <a-input v-model:value="form.model" placeholder="型号（选填）" />
         </a-form-item>
-        <a-form-item label="资产编号">
-          <a-input v-model:value="form.asset_tag" placeholder="资产编号（选填）" />
-        </a-form-item>
         <a-form-item label="分类" required>
           <a-select
             v-model:value="form.category_id"
@@ -299,40 +293,28 @@ function handleDelete(record: Instrument) {
       :footer="null"
       @cancel="cancelEdit"
     >
-      <a-list :dataSource="categories" size="small">
-        <template #renderItem="{ item }: { item: Category }">
-          <a-list-item>
-            <template v-if="catEditId === item.category_id">
-              <a-input
-                v-model:value="catEditName"
-                style="width: 200px"
-                @press-enter="handleEditCategory(item)"
-              />
-              <template #actions>
-                <a-button type="link" @click="handleEditCategory(item)">保存</a-button>
-                <a-button type="link" @click="cancelEdit">取消</a-button>
-              </template>
-            </template>
-            <template v-else>
-              <a-list-item-meta :title="item.name" />
-              <template #actions>
-                <a-button type="link" @click="startEdit(item)">编辑</a-button>
-                <a-button type="link" danger @click="handleDeleteCategory(item)">删除</a-button>
-              </template>
-            </template>
-          </a-list-item>
+      <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <a-input
+          v-model:value="catNewName"
+          placeholder="输入新分类名称"
+          @press-enter="handleAddCategory"
+          style="flex: 1"
+        />
+        <a-button type="primary" @click="handleAddCategory">添加</a-button>
+      </div>
+
+      <div v-for="cat in categories" :key="cat.category_id" style="display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
+        <template v-if="catEditId === cat.category_id">
+          <a-input v-model:value="catEditName" style="flex: 1; margin-right: 8px;" @press-enter="handleEditCategory(cat)" />
+          <a-button type="link" @click="handleEditCategory(cat)">保存</a-button>
+          <a-button type="link" @click="cancelEdit">取消</a-button>
         </template>
-        <template #header>
-          <div style="display: flex; gap: 8px;">
-            <a-input
-              v-model:value="catNewName"
-              placeholder="输入新分类名称"
-              @press-enter="handleAddCategory"
-            />
-            <a-button type="primary" @click="handleAddCategory">添加</a-button>
-          </div>
+        <template v-else>
+          <span style="flex: 1">{{ cat.name }}</span>
+          <a-button type="link" @click="startEdit(cat)">编辑</a-button>
+          <a-button type="link" danger @click="handleDeleteCategory(cat)">删除</a-button>
         </template>
-      </a-list>
+      </div>
     </a-modal>
   </div>
 </template>
