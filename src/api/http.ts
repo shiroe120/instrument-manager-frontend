@@ -4,7 +4,7 @@ import { message } from 'ant-design-vue'
 import { handleMockRequest } from './mock'
 
 const http = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: '/api',
   timeout: 10000,
   headers: { 'Content-Type': 'application/json' },
 })
@@ -22,7 +22,7 @@ http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 // If mock mode is on and the request matches, override config.adapter
 // to return fake data directly — no network call, no throwing.
 http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const useMock = localStorage.getItem('use_mock') !== 'false'
+  const useMock = localStorage.getItem('use_mock') === 'true'
   console.log('[Mock] useMock:', useMock, 'url:', config.url)
   if (useMock) {
     const mockRes = handleMockRequest(config)
