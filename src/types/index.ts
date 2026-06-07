@@ -82,11 +82,15 @@ export interface Reservation {
 export interface CreateReservationRequest {
   instrument_id: number
   date: string
-  slot_id: number
+  slot_ids: number[]
+}
+
+export interface CreateReservationResponse {
+  success: { slot_id: number; reservation_id: number }[]
+  failed: { slot_id: number; message: string }[]
 }
 
 export interface ApproveReservationRequest {
-  action: 'approved' | 'rejected'
   remark?: string
 }
 
