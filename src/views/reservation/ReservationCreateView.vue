@@ -16,7 +16,7 @@ const reservationStore = useReservationStore()
 const instrumentId = Number(route.params.id)
 const instrument = ref<any>(null)
 const selectedDate = ref<string>(dayjs().format('YYYY-MM-DD'))
-const selectedSlotId = ref<number | null>(null)
+const selectedSlotIds = ref<Set<number>>(new Set())
 const loading = ref(true)
 const submitting = ref(false)
 const takenSlots = ref<Set<number>>(new Set())
@@ -57,26 +57,43 @@ async function loadTakenSlots() {
   }
 }
 
+function toggleSlot(slotId: number) {
+  const newSet = new Set(selectedSlotIds.value)
+  if (newSet.has(slotId)) {
+    newSet.delete(slotId)
+  } else {
+    newSet.add(slotId)
+  }
+  selectedSlotIds.value = newSet
+}
+
 async function onDateChange(date: dayjs.Dayjs) {
   selectedDate.value = date.format('YYYY-MM-DD')
-  selectedSlotId.value = null
+  selectedSlotIds.value = new Set()
   await loadTakenSlots()
 }
 
 async function handleSubmit() {
-  if (!selectedDate.value || !selectedSlotId.value) {
+  if (!selectedDate.value || selectedSlotIds.value.size === 0) {
     message.warning('请选择日期和时段')
     return
   }
   submitting.value = true
   try {
-    await reservationStore.createReservation({
+    const result = await reservationStore.createReservation({
       instrument_id: instrumentId,
       date: selectedDate.value,
-      slot_id: selectedSlotId.value,
+      slot_ids: [...selectedSlotIds.value],
     })
-    message.success('预约提交成功，等待审批')
-    router.push('/reservations')
+    if (result.failed.length > 0) {
+      const failSlots = result.failed.map(f => `时段${f.slot_id}`).join('、')
+      message.warning(`部分时段预约失败: ${failSlots}`)
+    } else {
+      message.success('预约提交成功，等待审批')
+    }
+    if (result.success.length > 0) {
+      router.push('/reservations')
+    }
   } catch (err: any) {
     const msg = err?.response?.data?.detail || '预约失败，请重试'
     message.error(msg)
@@ -85,7 +102,7 @@ async function handleSubmit() {
   }
 }
 
-const canSubmit = computed(() => selectedDate.value && selectedSlotId.value !== null)
+const canSubmit = computed(() => selectedDate.value && selectedSlotIds.value.size > 0)
 </script>
 
 <template>
@@ -122,14 +139,15 @@ const canSubmit = computed(() => selectedDate.value && selectedSlotId.value !== 
                   class="slot-card"
                   :class="{
                     'slot-taken': takenSlots.has(slot.slot_id),
-                    'slot-selected': selectedSlotId === slot.slot_id,
+                    'slot-selected': selectedSlotIds.has(slot.slot_id),
                     'slot-available': !takenSlots.has(slot.slot_id),
                   }"
-                  @click="!takenSlots.has(slot.slot_id) && (selectedSlotId = slot.slot_id)"
+                  @click="!takenSlots.has(slot.slot_id) && toggleSlot(slot.slot_id)"
                 >
                   <div class="slot-label">{{ slot.label }}</div>
                   <div class="slot-time">{{ slot.time_range }}</div>
                   <div v-if="takenSlots.has(slot.slot_id)" class="slot-status">已预约</div>
+                  <div v-else-if="selectedSlotIds.has(slot.slot_id)" class="slot-status" style="color: var(--primary-color, #1890ff);">已选</div>
                 </div>
               </div>
             </div>
@@ -145,7 +163,12 @@ const canSubmit = computed(() => selectedDate.value && selectedSlotId.value !== 
               <a-descriptions-item label="仪器">{{ instrument.name }}</a-descriptions-item>
               <a-descriptions-item label="日期">{{ selectedDate }}</a-descriptions-item>
               <a-descriptions-item label="时段">
-                {{ selectedSlotId ? TIME_SLOTS.find(s => s.slot_id === selectedSlotId)?.label + ' ' + TIME_SLOTS.find(s => s.slot_id === selectedSlotId)?.time_range : '未选择' }}
+                {{ selectedSlotIds.size > 0
+                  ? [...selectedSlotIds].sort().map(id => {
+                      const s = TIME_SLOTS.find(s => s.slot_id === id)
+                      return s ? `${s.label} ${s.time_range}` : ''
+                    }).join('、')
+                  : '未选择' }}
               </a-descriptions-item>
             </a-descriptions>
             <a-button

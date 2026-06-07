@@ -69,7 +69,7 @@ function handleApprove(record: Reservation) {
     cancelText: '取消',
     onOk: async () => {
       try {
-        await reservationApi.approveReservation(record.reservation_id, { action: 'approved' })
+        await reservationApi.approveReservation(record.reservation_id)
         message.success('已通过')
         await loadData()
       } catch (err: any) {
@@ -96,7 +96,7 @@ function handleReject(record: Reservation) {
     cancelText: '取消',
     onOk: async () => {
       try {
-        await reservationApi.approveReservation(record.reservation_id, { action: 'rejected', remark: remark || undefined })
+        await reservationApi.rejectReservation(record.reservation_id, remark ? { remark } : undefined)
         message.success('已拒绝')
         await loadData()
       } catch (err: any) {

@@ -297,27 +297,36 @@ function routeMock(method: string, path: string, config: InternalAxiosRequestCon
     const instrument = instruments.find(i => i.instrument_id === body.instrument_id)
     if (!instrument) return mockResponse({ detail: '仪器不存在' }, 400)
     if (instrument.status !== 'available') return mockResponse({ detail: '仪器当前不可预约' }, 400)
-    // Check for time conflict
-    const conflict = reservations.find(
-      r => r.instrument_id === body.instrument_id && r.date === body.date && r.slot_id === body.slot_id &&
-        (r.status === 'pending' || r.status === 'approved')
-    )
-    if (conflict) return mockResponse({ detail: '该时段已被预约' }, 400)
 
-    const newReservation = {
-      reservation_id: nextReservationId++,
-      user_id: 2, // current mock user
-      instrument_id: body.instrument_id,
-      date: body.date,
-      slot_id: body.slot_id,
-      status: 'pending' as const,
-      apply_time: new Date().toISOString(),
-      approve_time: null,
-      admin_id: null,
-      remark: null,
+    const slotIds: number[] = body.slot_ids || []
+    const success: { slot_id: number; reservation_id: number }[] = []
+    const failed: { slot_id: number; message: string }[] = []
+
+    for (const sid of slotIds) {
+      const conflict = reservations.find(
+        r => r.instrument_id === body.instrument_id && r.date === body.date && r.slot_id === sid &&
+          (r.status === 'pending' || r.status === 'approved')
+      )
+      if (conflict) {
+        failed.push({ slot_id: sid, message: '该时段已被预约' })
+        continue
+      }
+      const newReservation = {
+        reservation_id: nextReservationId++,
+        user_id: 2,
+        instrument_id: body.instrument_id,
+        date: body.date,
+        slot_id: sid,
+        status: 'pending' as const,
+        apply_time: new Date().toISOString(),
+        approve_time: null,
+        admin_id: null,
+        remark: null,
+      }
+      reservations.push(newReservation)
+      success.push({ slot_id: sid, reservation_id: newReservation.reservation_id })
     }
-    reservations.push(newReservation)
-    return mockResponse(newReservation)
+    return mockResponse({ success, failed })
   }
 
   const cancelMatch = matchUrl(path, '/reservations/:id/cancel')
@@ -336,11 +345,24 @@ function routeMock(method: string, path: string, config: InternalAxiosRequestCon
     const res = reservations.find(r => r.reservation_id === id)
     if (!res) return mockResponse({ detail: '预约不存在' }, 404)
     const body = JSON.parse(config.data || '{}')
-    res.status = body.action
+    res.status = 'approved'
     res.approve_time = new Date().toISOString()
     res.admin_id = 1
     res.remark = body.remark || null
     return mockResponse({ message: '审批完成' })
+  }
+
+  const rejectMatch = matchUrl(path, '/reservations/:id/reject')
+  if (rejectMatch) {
+    const id = Number(rejectMatch[1])
+    const res = reservations.find(r => r.reservation_id === id)
+    if (!res) return mockResponse({ detail: '预约不存在' }, 404)
+    const body = JSON.parse(config.data || '{}')
+    res.status = 'rejected'
+    res.approve_time = new Date().toISOString()
+    res.admin_id = 1
+    res.remark = body.remark || null
+    return mockResponse({ message: '已拒绝' })
   }
 
   // No mock matched

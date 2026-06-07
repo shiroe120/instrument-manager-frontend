@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { reservationApi } from '@/api'
-import type { Reservation, CreateReservationRequest, ApproveReservationRequest } from '@/types'
+import type { Reservation, CreateReservationRequest, CreateReservationResponse } from '@/types'
 
 export const useReservationStore = defineStore('reservation', () => {
   const reservations = ref<Reservation[]>([])
@@ -18,7 +18,7 @@ export const useReservationStore = defineStore('reservation', () => {
     }
   }
 
-  async function createReservation(data: CreateReservationRequest) {
+  async function createReservation(data: CreateReservationRequest): Promise<CreateReservationResponse> {
     const res = await reservationApi.createReservation(data)
     return res.data
   }
@@ -27,9 +27,13 @@ export const useReservationStore = defineStore('reservation', () => {
     await reservationApi.cancelReservation(id)
   }
 
-  async function approveReservation(id: number, data: ApproveReservationRequest) {
-    await reservationApi.approveReservation(id, data)
+  async function approveReservation(id: number, remark?: string) {
+    await reservationApi.approveReservation(id, remark ? { remark } : undefined)
   }
 
-  return { reservations, loading, fetchReservations, createReservation, cancelReservation, approveReservation }
+  async function rejectReservation(id: number, remark?: string) {
+    await reservationApi.rejectReservation(id, remark ? { remark } : undefined)
+  }
+
+  return { reservations, loading, fetchReservations, createReservation, cancelReservation, approveReservation, rejectReservation }
 })
