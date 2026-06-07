@@ -20,8 +20,8 @@ const statusFilter = ref<string | undefined>(undefined)
 
 const columns = [
   { title: 'ID', dataIndex: 'reservation_id', width: 60 },
-  { title: '用户ID', dataIndex: 'user_id', width: 80 },
-  { title: '仪器ID', dataIndex: 'instrument_id', width: 80 },
+  { title: "用户", dataIndex: "user_name", width: 100 },
+  { title: "仪器", dataIndex: "instrument_name", width: 150 },
   { title: '日期', dataIndex: 'date', width: 120 },
   {
     title: '时段',

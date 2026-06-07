@@ -13,7 +13,6 @@ const form = reactive<LoginRequest>({
   password: '',
 })
 
-const selectedRole = ref<string>('student')
 const loading = ref(false)
 const passwordVisible = ref(false)
 
@@ -49,16 +48,6 @@ async function onSubmit() {
     <div class="login-panel">
       <div class="login-form-container">
         <h2 class="login-title">欢迎登录</h2>
-        <a-segmented
-          v-model:value="selectedRole"
-          :options="[
-            { value: 'student', label: '学生' },
-            { value: 'teacher', label: '教师' },
-          ]"
-          disabled
-          style="margin-bottom: 24px; width: 100%;"
-          block
-        />
         <a-form layout="vertical" :model="form" @submit.prevent="onSubmit">
           <a-form-item label="用户名" name="username" :rules="[{ required: true, message: '请输入用户名' }]">
             <a-input
