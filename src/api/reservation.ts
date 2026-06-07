@@ -10,6 +10,10 @@ export const reservationApi = {
     return http.get<Reservation[]>('/reservations', { params })
   },
 
+  getTakenSlots(instrument_id: number, date_str: string) {
+    return http.get<number[]>('/reservations/taken-slots', { params: { instrument_id, date_str } })
+  },
+
   createReservation(data: CreateReservationRequest) {
     return http.post<CreateReservationResponse>('/reservations', data)
   },

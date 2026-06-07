@@ -18,6 +18,11 @@ export const useReservationStore = defineStore('reservation', () => {
     }
   }
 
+  async function fetchTakenSlots(instrument_id: number, date_str: string): Promise<number[]> {
+    const res = await reservationApi.getTakenSlots(instrument_id, date_str)
+    return res.data
+  }
+
   async function createReservation(data: CreateReservationRequest): Promise<CreateReservationResponse> {
     const res = await reservationApi.createReservation(data)
     return res.data
@@ -35,5 +40,5 @@ export const useReservationStore = defineStore('reservation', () => {
     await reservationApi.rejectReservation(id, remark ? { remark } : undefined)
   }
 
-  return { reservations, loading, fetchReservations, createReservation, cancelReservation, approveReservation, rejectReservation }
+  return { reservations, loading, fetchReservations, fetchTakenSlots, createReservation, cancelReservation, approveReservation, rejectReservation }
 })

@@ -6,7 +6,7 @@ import { useReservationStore } from '@/stores/reservation'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
 import { TIME_SLOTS } from '@/types'
-import type { Reservation } from '@/types'
+ 
 
 const route = useRoute()
 const router = useRouter()
@@ -41,17 +41,8 @@ onMounted(async () => {
 
 async function loadTakenSlots() {
   try {
-    const res = await reservationStore.fetchReservations({
-      date_from: selectedDate.value,
-      date_to: selectedDate.value,
-    })
-    // Filter reservations for this instrument that are approved or pending
-    const taken = res.filter(
-      (r: Reservation) =>
-        r.instrument_id === instrumentId &&
-        (r.status === 'approved' || r.status === 'pending'),
-    )
-    takenSlots.value = new Set(taken.map((r: Reservation) => r.slot_id))
+    const res = await reservationStore.fetchTakenSlots(instrumentId, selectedDate.value)
+    takenSlots.value = new Set(res)
   } catch {
     takenSlots.value = new Set()
   }
