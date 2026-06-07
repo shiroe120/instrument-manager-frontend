@@ -153,10 +153,27 @@ async function loadInstruments() {
 .instrument-card {
   border-radius: 8px;
   transition: box-shadow 0.3s;
+  height: 220px;
+  display: flex;
+  flex-direction: column;
 }
 
 .instrument-card:hover {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.instrument-card :deep(.ant-card-body) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.instrument-card :deep(.ant-card-meta) {
+  flex: 1;
+}
+
+.instrument-card :deep(.ant-card-meta-description) {
+  min-height: 80px;
 }
 
 .card-desc {

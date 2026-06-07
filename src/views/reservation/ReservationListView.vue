@@ -109,7 +109,14 @@ async function handleCancel(reservationId: number) {
                   <a-list-item-meta>
                     <template #title>
                       <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                        <span style="font-weight: 600;">{{ nameMap[item.instrument_id] || `仪器#${item.instrument_id}` }}</span>
+                        <span style="font-weight: 600;">
+                          <template v-if="nameMap[item.instrument_id]">
+                            {{ nameMap[item.instrument_id] }}
+                          </template>
+                          <template v-else>
+                            <a-spin size="small" /> 加载中...
+                          </template>
+                        </span>
                         <a-tag :color="statusConfig[item.status]?.color || 'default'">
                           {{ statusConfig[item.status]?.label || item.status }}
                         </a-tag>
