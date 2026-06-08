@@ -18,6 +18,7 @@ const form = ref<InstrumentCreateRequest & { status?: string }>({
   description: '',
 })
 const submitLoading = ref(false)
+const mostReservedActive = ref(false)
 
 // 分类管理弹窗
 const catModalVisible = ref(false)
@@ -116,18 +117,29 @@ onMounted(async () => {
   await loadData()
 })
 
-async function loadData() {
+async function loadData(mostReserved?: boolean) {
   loading.value = true
   try {
     const catRes = await instrumentApi.getCategories()
     categories.value = catRes.data
-    const instRes = await instrumentApi.getInstruments()
+    const params = mostReserved ? { most_reserved: true } : undefined
+    const instRes = await instrumentApi.getInstruments(params)
     instruments.value = instRes.data
   } catch {
     message.error('加载数据失败')
   } finally {
     loading.value = false
   }
+}
+
+function toggleMostReserved() {
+  mostReservedActive.value = !mostReservedActive.value
+  loadData(mostReservedActive.value || undefined)
+}
+
+function clearMostReserved() {
+  mostReservedActive.value = false
+  loadData()
 }
 
 function openCreate() {
@@ -210,12 +222,29 @@ function handleDelete(record: Instrument) {
             <a-button style="margin-right: 8px;" @click="openCategoryModal">
               管理分类
             </a-button>
+            <a-button
+              :type="mostReservedActive ? 'primary' : 'default'"
+              style="margin-right: 8px;"
+              @click="toggleMostReserved"
+            >
+              📊 预约次数最多
+            </a-button>
             <a-button type="primary" @click="openCreate">
               + 新增仪器
             </a-button>
           </div>
         </div>
       </template>
+
+      <a-alert
+        v-if="mostReservedActive"
+        type="info"
+        show-icon
+        closable
+        :after-close="clearMostReserved"
+        message="仅显示预约次数最多的仪器"
+        style="margin-bottom: 16px;"
+      />
 
       <a-table
         :dataSource="instruments"

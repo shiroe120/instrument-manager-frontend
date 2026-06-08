@@ -24,6 +24,7 @@ export const instrumentApi = {
     category_id?: number
     status?: string
     keyword?: string
+    most_reserved?: boolean
   }) {
     return http.get<Instrument[]>('/instruments', { params })
   },
