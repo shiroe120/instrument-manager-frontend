@@ -153,10 +153,9 @@ async function loadInstruments() {
 .instrument-card {
   border-radius: 8px;
   transition: box-shadow 0.3s;
-  height: 220px;
+  min-height: 220px;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .instrument-card:hover {
