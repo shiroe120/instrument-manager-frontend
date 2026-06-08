@@ -156,6 +156,7 @@ async function loadInstruments() {
   height: 220px;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .instrument-card:hover {
