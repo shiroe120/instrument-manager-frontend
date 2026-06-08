@@ -2,19 +2,22 @@
 import { computed, h, ref, watch, type VNode } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { RouterView, useRouter } from 'vue-router'
-import { AppstoreOutlined, CalendarOutlined, CheckCircleOutlined, ToolOutlined } from '@ant-design/icons-vue'
+import { AppstoreOutlined, CalendarOutlined, CheckCircleOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons-vue'
 
 const authStore = useAuthStore()
 const router = useRouter()
 const collapsed = ref(false)
 
 const menuItems = computed(() => {
-  const items: { key: string; label: string; icon: () => VNode }[] = [
+  const items: ({ key: string; label: string; icon: () => VNode } | { type: 'divider' })[] = [
     { key: '/instruments', label: '仪器大厅', icon: () => h(AppstoreOutlined) },
     { key: '/reservations', label: '我的预约', icon: () => h(CalendarOutlined) },
+    { type: 'divider' },
+    { key: '/profile', label: '个人中心', icon: () => h(UserOutlined) },
   ]
   if (authStore.isAdmin) {
     items.push(
+      { type: 'divider' },
       { key: '/admin/instruments', label: '仪器管理', icon: () => h(ToolOutlined) },
       { key: '/admin/reservations', label: '预约审批', icon: () => h(CheckCircleOutlined) },
     )

@@ -35,6 +35,7 @@ const router = createRouter({
         { path: 'instruments/:id', name: 'InstrumentDetail', component: () => import('@/views/instrument/InstrumentDetailView.vue') },
         { path: 'instruments/:id/reserve', name: 'ReservationCreate', component: () => import('@/views/reservation/ReservationCreateView.vue') },
         { path: 'reservations', name: 'ReservationList', component: () => import('@/views/reservation/ReservationListView.vue') },
+        { path: 'profile', name: 'Profile', component: () => import('@/views/user/ProfileView.vue') },
         {
           path: 'admin',
           meta: { roles: ['admin'] },

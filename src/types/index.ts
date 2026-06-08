@@ -33,6 +33,20 @@ export interface RegisterRequest {
   email?: string
 }
 
+// ========== User Profile ==========
+export interface UserUpdateRequest {
+  username?: string
+  real_name?: string
+  phone?: string
+  email?: string
+  department?: string
+}
+
+export interface PasswordChangeRequest {
+  old_password: string
+  new_password: string
+}
+
 // ========== Instrument ==========
 export interface Category {
   category_id: number
